@@ -9,12 +9,10 @@ class CPU:
         """Construct a new CPU.
         Add list properties to the `CPU` class to hold 256 bytes of memory and 8
         general-purpose registers.
-        add properties for any internal registers you need, e.g. `PC`.
         """
-        self.reg = [0] * 8         #register
+        self.reg = [0] * 8         
         self.ram = [0] * 256        
-        self.pc = 0                #Program Counter, address of the currently executing instruction
-        self.flag = 0
+        self.pc = 0                
         self.branchtable = {}
         self.branchtable[0b00000001] = self.handle_HLT
         self.branchtable[0b10000010] = self.handle_LDI
@@ -48,13 +46,10 @@ class CPU:
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "CMP":
-            # If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
             if self.reg[reg_a] == self.reg[reg_b]:
                 self.flag = 0b00000001
-            # If registerA is less than registerB, set the Less-than `L` flag to 1,otherwise set it to 0.
             if self.reg[reg_a] < self.reg[reg_b]:
                 self.flag = 0b00000100
-            #If registerA is greater than registerB, set the Greater-than `G` flag to 1, otherwise set it to 0.
             if self.reg[reg_a] > self.reg[reg_b]:
                 self.flag = 0b00000010
         else:
@@ -68,8 +63,6 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
-            #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
@@ -96,27 +89,22 @@ class CPU:
         self.pc += 2
 
     def handle_CMP(self):
-        # Compare the values in two registers.
         register_a = self.ram_read(self.pc + 1)
         register_b = self.ram_read(self.pc + 2)
         self.alu("CMP", register_a, register_b)
         self.pc += 3
 
     def handle_JMP(self):
-        # Jump to the address stored in the given register.
         address = self.ram_read(self.pc + 1)
-        # Set the `PC` to the address stored in the given register.
         self.pc = self.reg[address]
     
     def handle_JEQ(self):
         address = self.ram_read(self.pc + 1)
-        # print(address)
         if self.flag == 0b00000001:
             self.pc = self.reg[address]
         else:
             self.pc += 2
     def handle_JNE(self):
-        # If `E` flag is clear (false, 0), jump to the address stored in the given register.
         address = self.ram_read(self.pc + 1)
         if self.flag != 0b00000001:
             self.pc = self.reg[address]
