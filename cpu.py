@@ -14,10 +14,13 @@ class CPU:
         self.reg = [0] * 8         #register
         self.ram = [0] * 256        
         self.pc = 0                #Program Counter, address of the currently executing instruction
+        self.flag = 0
         self.branchtable = {}
         self.branchtable[0b00000001] = self.handle_HLT
         self.branchtable[0b10000010] = self.handle_LDI
-        self.branchtable[0b01000111] = self.handle_PRN
+        self.branchtable[0b01000111] = self.handle_PRN 
+        self.branchtable[0b10100111] = self.handle_CMP
+        self.branchtable[0b01010100] = self.handle_JMP
 
     def load(self, filename):
         """Load a program into memory."""
@@ -42,6 +45,16 @@ class CPU:
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            # If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
+            if self.reg[reg_a] == self.reg[reg_b]:
+                # self.flag = 
+            # If registerA is less than registerB, set the Less-than `L` flag to 1,otherwise set it to 0.
+            if self.reg[reg_a] < self.reg[reg_b]:
+                # self.flag = 
+            #If registerA is greater than registerB, set the Greater-than `G` flag to 1, otherwise set it to 0.
+            if self.reg[reg_a] > self.reg[reg_b]:
+                # self.flag = 
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -80,6 +93,18 @@ class CPU:
         print(self.reg[index])
         self.pc += 2
 
+    def handle_CMP(self):
+        # Compare the values in two registers.
+        register_a = self.ram_read(self.pc + 1)
+        register_b = self.ram_read(self.pc + 2)
+        self.alu("CMP", register_a, register_b)
+
+    def handle_JMP(self):
+        # Jump to the address stored in the given register.
+        address = self.ram_read(self.pc + 1)
+        # Set the `PC` to the address stored in the given register.
+        self.pc = self.reg[address]
+       
 
     def run(self):
         """Run the CPU.
