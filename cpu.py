@@ -21,6 +21,8 @@ class CPU:
         self.branchtable[0b01000111] = self.handle_PRN 
         self.branchtable[0b10100111] = self.handle_CMP
         self.branchtable[0b01010100] = self.handle_JMP
+        self.branchtable[0b01010101] = self.handle_JEQ
+        self.branchtable[0b01010110] = self.handle_JNE
 
     def load(self, filename):
         """Load a program into memory."""
@@ -48,13 +50,13 @@ class CPU:
         elif op == "CMP":
             # If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
             if self.reg[reg_a] == self.reg[reg_b]:
-                # self.flag = 
+                self.flag = 0b00000001
             # If registerA is less than registerB, set the Less-than `L` flag to 1,otherwise set it to 0.
             if self.reg[reg_a] < self.reg[reg_b]:
-                # self.flag = 
+                self.flag = 0b00000100
             #If registerA is greater than registerB, set the Greater-than `G` flag to 1, otherwise set it to 0.
             if self.reg[reg_a] > self.reg[reg_b]:
-                # self.flag = 
+                self.flag = 0b00000010
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -98,13 +100,28 @@ class CPU:
         register_a = self.ram_read(self.pc + 1)
         register_b = self.ram_read(self.pc + 2)
         self.alu("CMP", register_a, register_b)
+        self.pc += 3
 
     def handle_JMP(self):
         # Jump to the address stored in the given register.
         address = self.ram_read(self.pc + 1)
         # Set the `PC` to the address stored in the given register.
         self.pc = self.reg[address]
-       
+    
+    def handle_JEQ(self):
+        address = self.ram_read(self.pc + 1)
+        # print(address)
+        if self.flag == 0b00000001:
+            self.pc = self.reg[address]
+        else:
+            self.pc += 2
+    def handle_JNE(self):
+        # If `E` flag is clear (false, 0), jump to the address stored in the given register.
+        address = self.ram_read(self.pc + 1)
+        if self.flag != 0b00000001:
+            self.pc = self.reg[address]
+        else:
+            self.pc += 2
 
     def run(self):
         """Run the CPU.
